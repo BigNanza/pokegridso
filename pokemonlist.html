@@ -3,15 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pokémon Filter</title>
+    <title>Pokemon List</title>
     <link rel="stylesheet" href="mainPageStyle.css" />
   </head>
   <body>
-    <h1>Pokemon Filter</h1>
-    <h2>Extra Category Selection</h2>
-    <label for="extra-select">Select an extra category:</label>
+    <h1>The Pokemon List</h1>
+
+    <label for="dropdown">Select Categories:</label>
+    <input list="categories" id="dropdown" />
+    <datalist id="categories"></datalist>
+    <label for="extra-select">Sort by:</label>
     <select id="extra-select">
-      <option value="-1">-- Select One --</option>
+      <option value="-1">PokeDex Order</option>
       <option value="0">Weight</option>
       <option value="1">Shine</option>
       <option value="2">Speed</option>
@@ -36,27 +39,17 @@
       <option value="19">r34 entries</option>
       <option value="20">Ranking in other games</option>
     </select>
-    <p id="selected-extra">Selected: None</p>
-    <label for="dropdown">Select Categories:</label>
-    <input list="categories" id="dropdown" />
-    <datalist id="categories"></datalist>
-
     <h2>Selected Categories</h2>
     <ul id="selected-categories"></ul>
 
-    <h2>Valid Pokemon</h2>
+    <div class="pokemon-header">
+      <h2>Valid Pokemon</h2>
+      <button id="reverse-list">
+        Sort Order <span id="sort-arrow" class="arrow arrow-down"></span>
+      </button>
+    </div>
     <ul id="selected-list"></ul>
 
     <script src="pokemonlistscript.js"></script>
-    <script>
-      document
-        .getElementById("extra-select")
-        .addEventListener("change", (event) => {
-          const selectedValue = event.target.value;
-          document.getElementById("selected-extra").textContent = selectedValue
-            ? `Selected: ${selectedValue}`
-            : "Selected: None";
-        });
-    </script>
   </body>
 </html>

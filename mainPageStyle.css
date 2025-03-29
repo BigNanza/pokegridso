@@ -13,3 +13,39 @@ body {
   background: #f0f0f0;
   border-radius: 5px;
 }
+.list-header {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+#reverse-list {
+  padding: 5px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.arrow {
+  display: inline-block;
+  margin-left: 5px;
+  transition: transform 0.3s ease;
+}
+
+.arrow-up::after {
+  content: "▲";
+}
+
+.arrow-down::after {
+  content: "▼";
+}
+
+.pokemon-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}

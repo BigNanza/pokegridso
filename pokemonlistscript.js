@@ -4,6 +4,7 @@ let pokemonData;
 let dictoflists;
 let selectedCategories = new Set(); // Track selected items
 let validPokemon = [];
+let isReversed = false; // Add this with other global variables at the top
 
 fetch("keywords.json")
   .then((response) => response.json())
@@ -35,7 +36,24 @@ fetch("dictoflists.json")
     dictoflists = data;
   })
   .catch((error) => console.error("Error loading the JSON file:", error));
+// Add this after your other fetch calls
+let selectedExtraValue = -1; // Initialize the variable to store the selected value
 
+document.getElementById("extra-select").addEventListener("change", (event) => {
+  selectedExtraValue = parseInt(event.target.value, 10); // Store the selected value
+  updateSelectedList(); // This will trigger the sort and redisplay
+  // If isReversed is true, reverse the list
+  if (isReversed) {
+    const selectedList = document.getElementById("selected-list");
+    const listItems = Array.from(selectedList.children);
+    // Reverse the DOM elements directly
+    if (listItems.length > 1) {
+      for (let i = listItems.length - 1; i >= 0; i--) {
+        selectedList.appendChild(listItems[i]);
+      }
+    }
+  }
+});
 // Function to format category names
 function formatCategoryName(index, name) {
   // 1-18 : Type
@@ -110,6 +128,38 @@ function handleInputChange(event) {
 }
 
 // Function to update the list of valid Pokemon fitting the selected categories
+// Modify the updateValidPokemon function to include sorting
+function updateValidPokemon() {
+  validPokemon = keywords.filter((pokemon) =>
+    Array.from(selectedCategories).every((category) =>
+      verify(pokemon, categoryList.indexOf(category))
+    )
+  );
+  sortPokemons(); // Sort before updating display
+  updateSelectedList(); // Update displayed Pokémon
+  updateSelectedCategoriesList();
+}
+
+// Enhance the sort function with your custom logic
+function sortPokemons() {
+  let selectedExtraValue = parseInt(
+    document.getElementById("extra-select").value
+  );
+  if (selectedExtraValue === -1) {
+    validPokemon.sort((a, b) => keywords.indexOf(a) - keywords.indexOf(b));
+    return;
+  } else if (selectedExtraValue === 0) {
+    selectedExtraValue = 4;
+  } else selectedExtraValue = selectedExtraValue + 15;
+  //console.log(selectedExtraValue);
+  validPokemon.sort((a, b) => {
+    const valueA = pokemonData[a][selectedExtraValue];
+    const valueB = pokemonData[b][selectedExtraValue];
+
+    if (!isReversed) return valueB - valueA;
+    else return valueA - valueB;
+  });
+}
 function updateValidPokemon() {
   validPokemon = keywords.filter((pokemon) =>
     Array.from(selectedCategories).every((category) =>
@@ -148,20 +198,145 @@ function verify(mon, category) {
 
   return true;
 }
-
-// Function to update the list of selected Pokémon
+// Modify the updateSelectedList function
 function updateSelectedList() {
   const selectedList = document.getElementById("selected-list");
-  selectedList.innerHTML = ""; // Clear the previous list
 
-  validPokemon.forEach((pokemon) => {
+  // Sort the Pokemon list right before display
+  sortPokemons();
+
+  let displayPokemon = [...validPokemon]; // Create a copy of the sorted array
+
+  // Preserve the reversed state
+  if (isReversed) {
+    displayPokemon.reverse();
+  }
+
+  // Get the selected extra value
+  let selectedExtraValue = parseInt(
+    document.getElementById("extra-select").value
+  );
+  if (selectedExtraValue === -1) {
+  } else if (selectedExtraValue === 0) {
+    selectedExtraValue = 4;
+  } else selectedExtraValue = selectedExtraValue + 15;
+
+  // Clear and rebuild the list
+  selectedList.innerHTML = "";
+
+  const fragment = document.createDocumentFragment();
+  displayPokemon.forEach((pokemon, index) => {
     const listItem = document.createElement("li");
-    listItem.textContent = pokemon;
-    selectedList.appendChild(listItem);
+    // Add ranking to the leftmost side
+    listItem.textContent = `${index + 1}. ${pokemon}`;
+
+    // If selectedExtraValue is not -1, display the value on the right
+    if (selectedExtraValue !== -1) {
+      const extraValue = pokemonData[pokemon][selectedExtraValue];
+      const valueSpan = document.createElement("span");
+      valueSpan.textContent = ` ${extraValue}`; // Add a space for separation
+      switch (selectedExtraValue) {
+        case 4:
+          valueSpan.textContent = `${(parseInt(extraValue, 10) / 10).toFixed(
+            1
+          )} kgs`;
+          break;
+        case 16:
+          valueSpan.textContent = extraValue + " spc";
+          break;
+        case 17:
+          valueSpan.textContent = extraValue + " spd";
+          break;
+        case 18:
+          valueSpan.textContent = extraValue + " moves";
+          break;
+        case 19:
+          valueSpan.textContent = `${(parseInt(extraValue, 10) / 10).toFixed(
+            1
+          )} m`;
+          break;
+        case 20:
+          valueSpan.textContent = extraValue + " bst";
+          break;
+        case 21:
+          valueSpan.textContent = extraValue.toFixed(1) + " smr";
+          break;
+        case 22:
+          valueSpan.textContent = extraValue + " spt";
+          break;
+        case 23:
+          valueSpan.textContent = extraValue + " hp";
+          break;
+        case 24:
+          valueSpan.textContent = extraValue + " atk";
+          break;
+        case 25:
+          valueSpan.textContent = extraValue + " def";
+          break;
+        case 26:
+          valueSpan.textContent = extraValue + " spatk";
+          break;
+        case 27:
+          valueSpan.textContent = extraValue + " spdef";
+          break;
+        case 28:
+          valueSpan.textContent = extraValue + " vgc";
+          break;
+        case 29:
+          valueSpan.textContent = extraValue + " smo";
+          break;
+        case 30:
+          valueSpan.textContent = extraValue.toFixed(1) + " bmi";
+          break;
+        case 31:
+          valueSpan.textContent = extraValue.toFixed(1) + " goat";
+          break;
+        case 32:
+          valueSpan.textContent = extraValue.toFixed(1) + " hwdif";
+          break;
+        case 33:
+          valueSpan.textContent = extraValue + " chem";
+          break;
+        case 34:
+          valueSpan.textContent = extraValue + " r34";
+          break;
+        case 35:
+          valueSpan.textContent = extraValue.toFixed(1) + " rank";
+          break;
+      }
+      valueSpan.style.float = "right"; // Align to the right side
+      listItem.appendChild(valueSpan);
+    }
+
+    fragment.appendChild(listItem);
   });
+
+  selectedList.appendChild(fragment);
 }
 
-// Function to update the list of selected categories
+// Update the reverse-list click handler
+document.getElementById("reverse-list").addEventListener("click", () => {
+  isReversed = !isReversed;
+
+  // Update the arrow direction
+  const arrow = document.getElementById("sort-arrow");
+  if (isReversed) {
+    arrow.className = "arrow arrow-up";
+  } else {
+    arrow.className = "arrow arrow-down";
+  }
+
+  // For DOM manipulation optimization, we'll just reverse the existing list
+  const selectedList = document.getElementById("selected-list");
+  const listItems = Array.from(selectedList.children);
+
+  // Reverse the DOM elements directly
+  if (listItems.length > 1) {
+    for (let i = listItems.length - 1; i >= 0; i--) {
+      selectedList.appendChild(listItems[i]);
+    }
+  }
+});
 function updateSelectedCategoriesList() {
   const selectedCategoryList = document.getElementById("selected-categories");
   selectedCategoryList.innerHTML = ""; // Clear previous selections
@@ -181,6 +356,7 @@ function updateSelectedCategoriesList() {
     removeButton.onclick = () => {
       selectedCategories.delete(category); // Remove the category
       updateValidPokemon(); // Update the Pokémon list
+      sortPokemons(); // Sort Pokémon again
       updateSelectedCategoriesList(); // Refresh the list
     };
 

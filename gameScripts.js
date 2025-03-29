@@ -151,6 +151,39 @@ function openPicker(identificationNumber) {
     categoryList[getCategory(id)[0]] +
     " + " +
     categoryList[getCategory(id)[1]];
+  if (options) {
+    showOptions([getCategory(id)[0], getCategory(id)[1]]);
+  }
+}
+
+function showOptions(category) {
+  let monList = [];
+  for (let i = 0; i < keywords.length; i++) {
+    if (verify(keywords[i], category)) {
+      monList.push(keywords[i]);
+    }
+  }
+  monList.forEach((keyword) => {
+    const li = document.createElement("li");
+
+    // Create image element for the suggestion
+    const img = document.createElement("img");
+    img.src = `images/pokemon/${keyword.toUpperCase()}.png`; // Adjust the path as needed
+    img.alt = keyword; // Set alt text as the keyword for accessibility
+    img.classList.add("suggestion-image"); // Optional: for styling
+
+    // Create text node for the suggestion
+    const text = document.createTextNode(keyword);
+
+    // Append both the image and the text to the list item
+    li.appendChild(img);
+    li.appendChild(text);
+
+    // Add click event to select the suggestion
+    li.onclick = () => selectKeyword(keyword);
+
+    suggestionsList.appendChild(li);
+  });
 }
 
 document.addEventListener("keydown", function (event) {
@@ -818,6 +851,7 @@ function validateParams(params) {
     legalCategories = JSON.parse(params.categories);
     winCon = JSON.parse(params.winCon);
     pp = JSON.parse(params.pp);
+    options = JSON.parse(params.options);
     const isCategoriesValid =
       Array.isArray(legalCategories) &&
       legalCategories.every((num) => Number.isInteger(num)) &&
@@ -833,7 +867,8 @@ function validateParams(params) {
       winCon[2] > -1 &&
       winCon[2] < 21;
     const isPpValid = typeof pp === "boolean";
-    return isCategoriesValid && isWinConValid && isPpValid;
+    const isOptionsValid = typeof options === "boolean";
+    return isCategoriesValid && isWinConValid && isPpValid && isOptionsValid;
   } catch (error) {
     return false;
   }
@@ -845,6 +880,7 @@ function getURLParams() {
     categories: params.get("categories"),
     winCon: params.get("winCon"),
     pp: params.get("pp"),
+    options: params.get("options"),
   };
 }
 function hasDuplicates(array) {

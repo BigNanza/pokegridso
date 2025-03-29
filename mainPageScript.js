@@ -16,6 +16,8 @@ function goSingle() {
   // Determine the value of the final checkbox
   const pp = document.getElementById("pp").checked;
 
+  const options = document.getElementById("options").checked;
+
   // Log the values (you can replace this with actual game logic)
   window.location.href =
     "game.html?categories=[" +
@@ -27,5 +29,7 @@ function goSingle() {
     "," +
     winCon +
     "]&pp=" +
-    pp;
+    pp +
+    "&options=" +
+    options;
 }
