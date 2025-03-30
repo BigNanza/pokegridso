@@ -370,7 +370,7 @@ function verify(mon, category) {
   if (one > 1289 && one < 1305 && !pokemon[12].includes(one - 1289)) {
     return false;
   }
-  if (one > 1304 && one < 1310 && pokemon[13] != one - 1304) {
+  if (one > 1304 && one < 1310 && pokemon[13] != one - 1305) {
     return false;
   }
   if (one > 1309 && one < 1316 && pokemon[14] != one - 1309) {
