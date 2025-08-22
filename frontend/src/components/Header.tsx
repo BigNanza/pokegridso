@@ -27,9 +27,7 @@ type User = {
 const ProfileImage: React.FC<{ user: User | null }> = ({ user }) => {
   const [imageError, setImageError] = useState(false);
 
-  const handleImageError = (
-    e: React.SyntheticEvent<HTMLImageElement, Event>
-  ) => {
+  const handleImageError = () => {
     // console.log("Profile image failed to load:", e.currentTarget.src);
     // console.log("Error details:", e);
     setImageError(true);
