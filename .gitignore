@@ -1,5 +1,137 @@
+# Dependencies
+node_modules/
+*/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
 .env
 .env.*
-.env
-.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env
+
+# Firebase service account keys
 service-account-key.json
+firebase-adminsdk-*.json
+backend/service-account-key.json
+frontend/firebase-adminsdk-*.json
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+.nyc_output
+
+# Build outputs
+build/
+dist/
+*/build/
+*/dist/
+frontend/build/
+frontend/dist/
+backend/build/
+backend/dist/
+
+# Vite
+frontend/.vite/
+.vite/
+
+# TypeScript
+*.tsbuildinfo
+.tsbuildinfo
+
+# Cache directories
+.cache/
+.parcel-cache/
+.npm/
+.yarn/
+.pnpm/
+.eslintcache
+.stylelintcache
+
+# Editor directories and files
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Deployment
+.vercel/
+.netlify/
+.firebase/
+
+# Temporary folders
+tmp/
+temp/
+.tmp/
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.pnpm-store/
+
+# Local development
+*.local
+.local/
+
+# Testing
+coverage/
+.coverage/
+junit.xml
+
+# Storybook
+.out/
+.storybook-out/
+
+# Next.js (if used)
+.next/
+out/
+
+# Nuxt.js (if used)
+.nuxt/
+
+# Gatsby (if used)
+.cache/
+public/
+
+# SvelteKit (if used)
+.svelte-kit/
+
+# Astro (if used)
+.astro/
