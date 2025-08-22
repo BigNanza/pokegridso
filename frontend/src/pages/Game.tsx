@@ -85,7 +85,7 @@ const Game: FC = () => {
     const fetchGameData = async () => {
       try {
         const apiUrl = import.meta.env.PROD
-          ? "https://your-api-url.vercel.app/api" // We'll get this after deploying backend
+          ? "https://pokegridso.vercel.app" // We'll get this after deploying backend
           : "http://localhost:3000/api";
         // Get token from localStorage
         const storedToken = localStorage.getItem("authToken");
