@@ -1,9 +1,7 @@
-// routes/puzzles.js
 const express = require("express");
 const path = require("path");
 const fs = require("fs").promises;
 const fsSync = require("fs");
-const jwt = require("jsonwebtoken");
 const router = express.Router();
 const cron = require("node-cron");
 const {
@@ -18,8 +16,6 @@ const { generatePuzzle } = require("../utils/utils");
 const { generateCustomPuzzle } = require("../utils/custom");
 
 const puzzleCache = new Map();
-
-const JWT_SECRET = process.env.JWT_SECRET;
 
 // --- Cache and Cleanup ---
 
@@ -39,7 +35,7 @@ setInterval(cleanupCache, 1800000);
 
 // --- Authentication Middleware ---
 
-const authenticateToken = (req, res, next) => {
+const authenticateFirebaseToken = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
@@ -49,18 +45,21 @@ const authenticateToken = (req, res, next) => {
     return;
   }
 
-  jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) {
-      req.user = null;
-    } else {
-      req.user = decoded;
-    }
+  try {
+    // Access admin through global object or require it
+    const admin = require("firebase-admin");
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    req.user = decodedToken;
     next();
-  });
+  } catch (error) {
+    console.warn("Firebase token verification failed:", error.message);
+    req.user = null;
+    next();
+  }
 };
 
 // Daily Puzzle Endpoint
-router.get("/daily.json", authenticateToken, async (req, res) => {
+router.get("/daily.json", authenticateFirebaseToken, async (req, res) => {
   try {
     const puzzleDateToServe = getDailyPuzzleDateToServe();
     console.log(`Serving daily puzzle for date: ${puzzleDateToServe}`);
@@ -70,8 +69,8 @@ router.get("/daily.json", authenticateToken, async (req, res) => {
       const cached = puzzleCache.get(cacheKey);
       const userPuzzleData = {
         ...cached.data,
-        userId: req.user?.userId || null,
-        isGuest: req.user?.isGuest ?? true, // Use nullish coalescing or ||
+        userId: req.user?.uid || null, // Changed from userId to uid
+        isGuest: !req.user, // If no user, treat as guest
       };
       res.set("Cache-Control", "public, max-age=1800");
       res.set("ETag", `"${cached.data.id}"`);
@@ -93,8 +92,8 @@ router.get("/daily.json", authenticateToken, async (req, res) => {
 
       const userPuzzleData = {
         ...puzzleData,
-        userId: req.user?.userId || null,
-        isGuest: req.user?.isGuest ?? true, // Use nullish coalescing or ||
+        userId: req.user?.uid || null, // Changed from userId to uid
+        isGuest: !req.user, // If no user, treat as guest
       };
 
       res.set("Cache-Control", "public, max-age=1800");
@@ -109,8 +108,8 @@ router.get("/daily.json", authenticateToken, async (req, res) => {
           const dailyPuzzle = await generateDailyPuzzle(puzzleDateToServe);
           const userPuzzleData = {
             ...dailyPuzzle,
-            userId: req.user?.userId || null,
-            isGuest: req.user?.isGuest ?? true, // Use nullish coalescing or ||
+            userId: req.user?.uid || null, // Changed from userId to uid
+            isGuest: !req.user, // If no user, treat as guest
           };
           res.set("Cache-Control", "public, max-age=1800");
           res.set("ETag", `"${dailyPuzzle.id}"`);
@@ -136,7 +135,7 @@ router.get("/daily.json", authenticateToken, async (req, res) => {
 });
 
 // Updated Weekly Config Endpoint
-router.get("/weekly.json", authenticateToken, async (req, res) => {
+router.get("/weekly.json", authenticateFirebaseToken, async (req, res) => {
   try {
     // Determine the Sunday of the week whose config should be served now
     const configDateToServe = getWeeklyConfigDateToServe();
@@ -200,8 +199,8 @@ router.get("/weekly.json", authenticateToken, async (req, res) => {
     // Add user-specific data to the generated puzzle
     const userPuzzleData = {
       ...weeklyPuzzle,
-      userId: req.user?.userId || null,
-      isGuest: req.user?.isGuest || false,
+      userId: req.user?.uid || null, // Changed from userId to uid
+      isGuest: !req.user, // If no user, treat as guest
     };
 
     // Set headers to prevent caching for weekly puzzles
@@ -226,7 +225,7 @@ router.get("/weekly.json", authenticateToken, async (req, res) => {
 });
 
 // Custom Puzzle Endpoint
-router.get("/custom.json", authenticateToken, async (req, res) => {
+router.get("/custom.json", authenticateFirebaseToken, async (req, res) => {
   try {
     const { categories, winCon, pp, options, maxRepeats } = req.query;
 
@@ -236,8 +235,8 @@ router.get("/custom.json", authenticateToken, async (req, res) => {
       pp,
       options,
       maxRepeats,
-      userId: req.user?.userId || null,
-      isGuest: req.user?.isGuest ?? true, // Use nullish coalescing or ||
+      userId: req.user?.uid || null, // Changed from userId to uid
+      isGuest: !req.user, // If no user, treat as guest
     });
 
     res.json(customPuzzle);

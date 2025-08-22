@@ -1,0 +1,113 @@
+{
+  "date": "2025-08-22T17:38:12.735Z",
+  "completed": false,
+  "method": "AUTOMATIC",
+  "winCondition": 13,
+  "second": false,
+  "minimum": false,
+  "pp": null,
+  "options": false,
+  "config": {
+    "categories": [
+      0,
+      1,
+      2,
+      3,
+      8,
+      10
+    ],
+    "winCondition": {
+      "isMinimum": false,
+      "isSecond": false,
+      "targetMetric": 13
+    },
+    "gameOptions": {
+      "limitedGuesses": false,
+      "showAllOptions": false,
+      "maxRepeats": 4
+    }
+  },
+  "boxes": [
+    [
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      }
+    ],
+    [
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      }
+    ],
+    [
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      }
+    ]
+  ],
+  "xCategories": [
+    {
+      "type": "Egg Groups",
+      "name": "MONSTER"
+    },
+    {
+      "type": "Egg Groups",
+      "name": "GROUND"
+    },
+    {
+      "type": "Types",
+      "name": "Dragon"
+    }
+  ],
+  "yCategories": [
+    {
+      "type": "Mono/Dual Type",
+      "name": "Monotype"
+    },
+    {
+      "type": "Evolution Triggers",
+      "name": "LEVEL-UP"
+    },
+    {
+      "type": "Types",
+      "name": "Steel"
+    }
+  ],
+  "type": "DAILY",
+  "id": "dailypuzzle-2025-08-22"
+}
