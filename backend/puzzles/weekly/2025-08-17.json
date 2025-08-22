@@ -1,0 +1,19 @@
+{
+  "categories": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "winCondition": {
+    "isMinimum": false,
+    "isSecond": false,
+    "targetMetric": 3
+  },
+  "gameOptions": {
+    "limitedGuesses": false,
+    "showAllOptions": false,
+    "maxRepeats": 4
+  }
+}

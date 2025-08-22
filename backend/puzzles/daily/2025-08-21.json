@@ -1,0 +1,111 @@
+{
+  "date": "2025-08-22T06:14:44.609Z",
+  "completed": false,
+  "method": "AUTOMATIC",
+  "winCondition": 13,
+  "second": false,
+  "minimum": true,
+  "pp": null,
+  "options": false,
+  "config": {
+    "categories": [
+      0,
+      1,
+      5,
+      8
+    ],
+    "winCondition": {
+      "isMinimum": true,
+      "isSecond": false,
+      "targetMetric": 13
+    },
+    "gameOptions": {
+      "limitedGuesses": false,
+      "showAllOptions": false,
+      "maxRepeats": 5
+    }
+  },
+  "boxes": [
+    [
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      }
+    ],
+    [
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      }
+    ],
+    [
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      }
+    ]
+  ],
+  "xCategories": [
+    {
+      "type": "Types",
+      "name": "Water"
+    },
+    {
+      "type": "Abil",
+      "name": "2-19 Abil"
+    },
+    {
+      "type": "Types",
+      "name": "Dark"
+    }
+  ],
+  "yCategories": [
+    {
+      "type": "Types",
+      "name": "Poison"
+    },
+    {
+      "type": "Types",
+      "name": "Fighting"
+    },
+    {
+      "type": "Mono/Dual Type",
+      "name": "Monotype"
+    }
+  ],
+  "type": "DAILY",
+  "id": "dailypuzzle-2025-08-21"
+}
