@@ -2,6 +2,7 @@
 import { useParams } from "react-router-dom";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
+import { auth } from "../lib/firebase"; // Add this import
 
 type GameParams = {
   mode: "daily" | "custom" | "weekly";
@@ -82,20 +83,22 @@ const Game: FC = () => {
     setError(null);
     setLoading(true);
 
+    // Game.tsx - Update the fetchGameData function
     const fetchGameData = async () => {
       try {
         const apiUrl = import.meta.env.PROD
-          ? "https://pokegridso.vercel.app" // We'll get this after deploying backend
+          ? "https://pokegridso.vercel.app"
           : "http://localhost:3000/api";
-        // Get token from localStorage
-        const storedToken = localStorage.getItem("authToken");
 
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
         };
 
-        if (storedToken) {
-          headers["Authorization"] = `Bearer ${storedToken}`;
+        // Get Firebase ID token
+        const user = auth.currentUser;
+        if (user) {
+          const idToken = await user.getIdToken();
+          headers["Authorization"] = `Bearer ${idToken}`;
         }
 
         // Get search parameters for custom mode
@@ -111,7 +114,7 @@ const Game: FC = () => {
 
         const response = await fetch(fullUrl, {
           headers,
-          cache: "no-store", // Prevent browser caching
+          cache: "no-store",
         });
 
         if (!response.ok) {
@@ -120,9 +123,13 @@ const Game: FC = () => {
 
         const PuzzleData = await response.json();
         setGameData(PuzzleData);
-      } catch (err) {
+      } catch (err: unknown) {
         console.error(`Failed to fetch ${mode} puzzle:`, err);
-        setError(`Failed to load ${mode} puzzle`);
+        if (err instanceof Error) {
+          setError(`Failed to load ${mode} puzzle: ${err.message}`);
+        } else {
+          setError(`Failed to load ${mode} puzzle`);
+        }
       } finally {
         setLoading(false);
       }

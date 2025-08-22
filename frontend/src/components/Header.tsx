@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import HeaderButton from "./HeaderButton";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/useAuth";
 import {
   BsSun,
   BsCalendar2Week,
@@ -21,6 +21,44 @@ type User = {
   email: string;
   isGuest: boolean;
   picture?: string;
+};
+
+// Profile Image Component with error handling
+const ProfileImage: React.FC<{ user: User | null }> = ({ user }) => {
+  const [imageError, setImageError] = useState(false);
+
+  const handleImageError = (
+    e: React.SyntheticEvent<HTMLImageElement, Event>
+  ) => {
+    // console.log("Profile image failed to load:", e.currentTarget.src);
+    // console.log("Error details:", e);
+    setImageError(true);
+  };
+
+  const handleImageLoad = () => {
+    // console.log("Profile image loaded successfully:", user?.picture);
+  };
+
+  if (!user?.picture || imageError) {
+    return (
+      <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold">
+        {user?.username?.charAt(0)?.toUpperCase() || "U"}
+      </div>
+    );
+  }
+
+  // console.log("Attempting to load profile image:", user.picture);
+
+  return (
+    <img
+      src={user.picture}
+      alt="Profile"
+      className="h-10 w-10 rounded-full object-cover border-2 border-gray-300 hover:border-primary transition-colors"
+      onError={handleImageError}
+      onLoad={handleImageLoad}
+      referrerPolicy="no-referrer"
+    />
+  );
 };
 
 const NAV_ITEMS = [
@@ -87,6 +125,7 @@ const Header: React.FC = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
+  const profileMenuRef = useRef<HTMLDivElement>(null);
 
   // Refs
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -94,35 +133,57 @@ const Header: React.FC = () => {
   const lastAppliedAvailableRef = useRef<number | null>(null);
   const prevHiddenRef = useRef<string[]>([]);
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+  const profileButtonRef = useRef<HTMLButtonElement>(null);
 
-  // load user info from localStorage
+  // console.log("=== HEADER RENDER ===");
+  // console.log("isLoggedIn:", isLoggedIn);
+  // console.log("isProfileMenuOpen:", isProfileMenuOpen);
+  // console.log("isMobileMenuOpen:", isMobileMenuOpen);
+  // console.log("location.pathname:", location.pathname);
+
+  // Sync user data with AuthContext
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    const userStr = localStorage.getItem("user");
-    if (token && userStr) {
-      try {
-        const userData = JSON.parse(userStr);
-        const guestStatus = userData.isGuest === 1 || userData.isGuest === true;
-        setIsGuest(guestStatus);
-        setUser(userData);
-      } catch {
-        setIsGuest(false);
-        setUser(null);
+    // console.log("=== Header: Syncing with AuthContext ===");
+
+    if (isLoggedIn) {
+      // Get user data from localStorage when logged in
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          const userData = JSON.parse(userStr);
+          setUser(userData);
+          setIsGuest(false);
+          // console.log("Header: Set user from localStorage:", userData);
+        } catch (error) {
+          console.error("Error parsing user data:", error);
+        }
       }
     } else {
-      setIsGuest(false);
+      // Clear user data when logged out
       setUser(null);
+      setIsGuest(false);
+      // console.log("Header: Cleared user data");
     }
   }, [isLoggedIn]);
 
+  // Simplified closeAllMenus without useCallback to avoid dependency issues
   const closeAllMenus = () => {
+    // console.log("=== closeAllMenus called ===");
+    // console.log(
+    //   "Current state - Profile:",
+    //   isProfileMenuOpen,
+    //   "Mobile:",
+    //   isMobileMenuOpen
+    // );
     if (isProfileMenuOpen || isMobileMenuOpen) {
+      // console.log("Closing menus...");
       setIsProfileMenuOpen(false);
       setIsMobileMenuOpen(false);
     }
   };
 
   const handleLogout = () => {
+    // console.log("=== handleLogout called ===");
     localStorage.removeItem("authToken");
     localStorage.removeItem("user");
     authLogout();
@@ -136,9 +197,32 @@ const Header: React.FC = () => {
     return true;
   };
 
+  // LOCATION CHANGE EFFECT - Simplified version
   useEffect(() => {
-    closeAllMenus();
-  }, [location.pathname]);
+    // console.log("=== LOCATION CHANGE EFFECT ===");
+    // console.log("New location:", location.pathname);
+    // console.log(
+    //   "Previous location state - Profile:",
+    //   isProfileMenuOpen,
+    //   "Mobile:",
+    //   isMobileMenuOpen
+    // );
+
+    // Only close menus if they're actually open
+    if (isProfileMenuOpen || isMobileMenuOpen) {
+      // console.log("Menus are open, scheduling close...");
+      // Use setTimeout to ensure this happens after other events
+      const timer = setTimeout(() => {
+        // console.log("Timer executed - closing menus due to navigation");
+        closeAllMenus();
+      }, 50);
+
+      return () => {
+        // console.log("Cleaning up timer");
+        clearTimeout(timer);
+      };
+    }
+  }, [location.pathname]); // Remove closeAllMenus from dependencies
 
   // Main collapsing logic
   useEffect(() => {
@@ -154,7 +238,6 @@ const Header: React.FC = () => {
 
       const titleW = measureRefs.current["title"]?.offsetWidth || 0;
       const subtitleW = measureRefs.current["subtitle"]?.offsetWidth || 0;
-      // const profileW = measureRefs.current["profile"]?.offsetWidth || 0;
       const hamburgerW = measureRefs.current["hamburger"]?.offsetWidth || 0;
 
       const itemWidths: Record<string, number> = {};
@@ -192,7 +275,7 @@ const Header: React.FC = () => {
         }
         if (item === "freeplay" && visibleSet.has("freeplay")) {
           const itemsToCollapse = ["freeplay", "weekly", "daily"];
-          let wasFirstNavHidden = !hamburgerAdded;
+          const wasFirstNavHidden = !hamburgerAdded;
           for (const key of itemsToCollapse) {
             if (visibleSet.has(key)) {
               visibleSet.delete(key);
@@ -263,23 +346,77 @@ const Header: React.FC = () => {
     };
   }, [isLoggedIn, isGuest]);
 
-  // Click outside close
+  // Click outside close - THE KEY FIX IS HERE
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const targetNode = e.target as Node;
+
+      // console.log("=== CLICK OUTSIDE HANDLER ===");
+      // console.log("Click detected on:", targetNode);
+      // console.log("Profile menu open:", isProfileMenuOpen);
+      // console.log("Mobile menu open:", isMobileMenuOpen);
+
+      // Check if click is on the profile button itself
+      if (
+        profileButtonRef.current &&
+        profileButtonRef.current.contains(targetNode as Node)
+      ) {
+        // console.log("Clicked profile button - ignoring click outside logic");
+        return; // Don't close if clicking the profile button
+      }
+
+      // Check if click is inside header container
       const isOutsideHeader =
         containerRef.current && !containerRef.current.contains(targetNode);
+
+      // Check if click is inside mobile menu
       const isOutsideMobileMenu =
         mobileMenuRef.current && !mobileMenuRef.current.contains(targetNode);
-      if (isOutsideHeader && isOutsideMobileMenu) closeAllMenus();
+
+      // Check if click is inside profile menu
+      const isOutsideProfileMenu =
+        profileMenuRef.current && !profileMenuRef.current.contains(targetNode);
+
+      // console.log("Click outside checks:", {
+      //   isOutsideHeader,
+      //   isOutsideMobileMenu,
+      //   isOutsideProfileMenu,
+      // });
+
+      // Close menus only if click is outside all relevant areas
+      if (isOutsideHeader && isOutsideMobileMenu && isOutsideProfileMenu) {
+        // console.log("Click is outside all menus - closing menus");
+        closeAllMenus();
+      } else {
+        // console.log("Click is inside a menu area - not closing");
+      }
     };
+
+    // console.log("=== ATTACHING CLICK LISTENER ===");
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    return () => {
+      // console.log("=== REMOVING CLICK LISTENER ===");
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isProfileMenuOpen, isMobileMenuOpen]); // Remove closeAllMenus from dependencies
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen((p) => !p);
-    setIsProfileMenuOpen(false);
+    // console.log("=== toggleMobileMenu called ===");
+    // console.log(
+    //   "Current state - Mobile:",
+    //   isMobileMenuOpen,
+    //   "Profile:",
+    //   isProfileMenuOpen
+    // );
+    setIsMobileMenuOpen((p) => {
+      const newValue = !p;
+      // console.log("Setting mobile menu to:", newValue);
+      return newValue;
+    });
+    if (isProfileMenuOpen) {
+      // console.log("Closing profile menu because mobile menu is toggling");
+      setIsProfileMenuOpen(false);
+    }
   };
 
   const isHidden = (key: string) => hiddenItems.includes(key);
@@ -315,9 +452,12 @@ const Header: React.FC = () => {
     // If the hamburger button is no longer visible (because there are no hidden nav items)
     // and the mobile menu is currently open, we should close it.
     if (!hasHiddenNavItems && isMobileMenuOpen) {
+      // console.log(
+      //   "Hamburger button hidden but mobile menu open - closing mobile menu"
+      // );
       setIsMobileMenuOpen(false);
     }
-  }, [hasHiddenNavItems, isMobileMenuOpen]); // Re-run when the button's visibility or menu's state changes
+  }, [hasHiddenNavItems, isMobileMenuOpen]);
 
   return (
     <div className="relative">
@@ -424,25 +564,33 @@ const Header: React.FC = () => {
             {isLoggedIn && !isGuest && !isHidden("profile") && (
               <div className="relative flex-shrink-0">
                 <button
-                  onClick={() => setIsProfileMenuOpen((p) => !p)}
+                  ref={profileButtonRef}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // console.log("=== PROFILE BUTTON CLICKED ===");
+                    // console.log(
+                    //   "Current state - Profile:",
+                    //   isProfileMenuOpen,
+                    //   "Mobile:",
+                    //   isMobileMenuOpen
+                    // );
+                    setIsProfileMenuOpen((prev) => {
+                      const newValue = !prev;
+                      // console.log("Toggling profile menu to:", newValue);
+                      return newValue;
+                    });
+                  }}
                   className="focus:outline-none rounded-full overflow-hidden"
                   aria-label="User menu"
                   aria-expanded={isProfileMenuOpen}
                 >
-                  {user?.picture ? (
-                    <img
-                      src={user.picture}
-                      alt="Profile"
-                      className="h-10 w-10 rounded-full object-cover border-2 border-gray-300 hover:border-primary transition-colors"
-                    />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold">
-                      {user?.username?.charAt(0)?.toUpperCase() || "U"}
-                    </div>
-                  )}
+                  <ProfileImage user={user} />
                 </button>
                 {isProfileMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                  <div
+                    ref={profileMenuRef}
+                    className="absolute right-0 top-full mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200"
+                  >
                     <div className="px-4 py-2 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900 truncate">
                         {user?.username}
@@ -454,12 +602,20 @@ const Header: React.FC = () => {
                     <Link
                       to="/profile"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={closeAllMenus}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // console.log("Profile link clicked - closing menu");
+                        setIsProfileMenuOpen(false);
+                      }}
                     >
                       Profile
                     </Link>
                     <button
-                      onClick={handleLogout}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // console.log("Logout button clicked");
+                        handleLogout();
+                      }}
                       className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       Logout
@@ -487,7 +643,6 @@ const Header: React.FC = () => {
         </div>
       </header>
 
-      {/* CHANGE 3: Attach the new ref to the hamburger dropdown */}
       <div
         ref={mobileMenuRef}
         className={`absolute right-0 top-full w-64 bg-white shadow-lg rounded-md z-10 origin-top 
@@ -500,11 +655,15 @@ const Header: React.FC = () => {
       >
         <nav className="py-2">
           {dropdownNav.map((item) => (
-            // This is correct: A simple Link with no onClick handler.
             <Link
               key={`drop-${item.key}`}
               to={item.to}
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                // console.log("Dropdown item clicked - closing all menus");
+                closeAllMenus();
+              }}
             >
               <span className="mr-2">{item.icon}</span>
               <span>{item.text}</span>
