@@ -87,7 +87,7 @@ const Game: FC = () => {
     const fetchGameData = async () => {
       try {
         const apiUrl = import.meta.env.PROD
-          ? "https://pokegridso-api.vercel.app/"
+          ? "https://pokegridso-api.vercel.app/api"
           : "http://localhost:3000/api";
 
         const headers: Record<string, string> = {
