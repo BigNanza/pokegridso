@@ -3,7 +3,11 @@
 // Handles logic for generating, serving, and scheduling daily puzzles.
 //
 
-const { generatePuzzle } = require("./utils");
+const {
+  generatePuzzle,
+  getDatePartsInTimezone,
+  formatDateForFile,
+} = require("./utils");
 const {
   DAILY_PUZZLE_TIME,
   TIMEZONE,
@@ -24,7 +28,7 @@ let puzzleGenerationTask = null; // Holds the scheduled cron task
  */
 async function initializeDailyPuzzle() {
   try {
-    const dateToServe = getDailyPuzzleDateToServe();
+    const dateToServe = formatDateForFile(getDailyPuzzleDateToServe());
     const filePath = path.join(
       __dirname,
       "..",
@@ -63,41 +67,22 @@ async function initializeDailyPuzzle() {
 function getDailyPuzzleDateToServe() {
   const now = new Date();
 
-  const formatter = new Intl.DateTimeFormat("sv-SE", {
-    timeZone: TIMEZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+  // Get all date/time parts in the target timezone
+  const { year, month, day, hour, minute } = getDatePartsInTimezone(now);
 
-  const parts = Object.fromEntries(
-    formatter.formatToParts(now).map((p) => [p.type, p.value])
-  );
-  const currentDate = `${parts.year}-${parts.month}-${parts.day}`;
-  const currentHour = parseInt(parts.hour, 10);
-  const currentMinute = parseInt(parts.minute, 10);
+  // Construct midnight in the target timezone
+  const targetDate = new Date(`${year}-${month}-${day}T00:00:00`);
 
-  if (
-    currentHour < DAILY_PUZZLE_TIME.hour ||
-    (currentHour === DAILY_PUZZLE_TIME.hour &&
-      currentMinute < DAILY_PUZZLE_TIME.minute)
-  ) {
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
+  const isBeforeServingTime =
+    hour < DAILY_PUZZLE_TIME.hour ||
+    (hour === DAILY_PUZZLE_TIME.hour && minute < DAILY_PUZZLE_TIME.minute);
 
-    const yFormatter = new Intl.DateTimeFormat("sv-SE", {
-      timeZone: TIMEZONE,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-    return yFormatter.format(yesterday);
+  if (isBeforeServingTime) {
+    // Move back one day if we haven’t reached today’s puzzle time
+    targetDate.setDate(targetDate.getDate() - 1);
   }
 
-  return currentDate;
+  return targetDate;
 }
 
 /**

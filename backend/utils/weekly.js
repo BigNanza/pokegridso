@@ -9,6 +9,7 @@ const {
   DAILY_PUZZLE_GENERATION_OFFSET_MINUTES,
   WEEK_START_DAY,
 } = require("../config/constants");
+const { getDatePartsInTimezone, formatDateForFile } = require("./utils");
 const cron = require("node-cron");
 const fs = require("fs").promises;
 const path = require("path");
@@ -22,22 +23,12 @@ let weeklyConfigGenerationTask = null; // Holds the scheduled cron task
  * @param {number} [startDay=WEEK_START_DAY] - Start of week (0=Sunday, 1=Monday, etc.).
  * @returns {string} Date string (YYYY-MM-DD) representing the start of the week in TIMEZONE.
  */
-function getStartDayOfWeek(targetDate, startDay = WEEK_START_DAY) {
-  const date = new Date(targetDate);
-  const day = date.getDay(); // 0 (Sunday) → 6 (Saturday)
+function getStartDayOfWeek(date, startDay) {
+  const day = date.getDay();
   const diff = (day - startDay + 7) % 7;
-
   const startDate = new Date(date);
   startDate.setDate(date.getDate() - diff);
-
-  const formatter = new Intl.DateTimeFormat("sv-SE", {
-    timeZone: TIMEZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-
-  return formatter.format(startDate);
+  return startDate;
 }
 
 /**
@@ -51,33 +42,16 @@ function getStartDayOfWeek(targetDate, startDay = WEEK_START_DAY) {
  */
 function getWeeklyConfigDateToServe() {
   const now = new Date();
+  const { year, month, day, hour, minute } = getDatePartsInTimezone(now);
 
-  const formatter = new Intl.DateTimeFormat("sv-SE", {
-    timeZone: TIMEZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-
-  const parts = Object.fromEntries(
-    formatter.formatToParts(now).map((p) => [p.type, p.value])
-  );
-  const currentDateStr = `${parts.year}-${parts.month}-${parts.day}`;
-  const currentHour = parseInt(parts.hour, 10);
-  const currentMinute = parseInt(parts.minute, 10);
-
-  const currentDay = new Date(`${currentDateStr}T00:00:00`).getDay();
+  const currentDay = new Date(`${year}-${month}-${day}T00:00:00`).getDay();
   const isStartDay = currentDay === WEEK_START_DAY;
 
   const isBeforeServingTime =
-    currentHour < DAILY_PUZZLE_TIME.hour ||
-    (currentHour === DAILY_PUZZLE_TIME.hour &&
-      currentMinute < DAILY_PUZZLE_TIME.minute);
+    hour < DAILY_PUZZLE_TIME.hour ||
+    (hour === DAILY_PUZZLE_TIME.hour && minute < DAILY_PUZZLE_TIME.minute);
 
-  let targetDate = new Date(`${currentDateStr}T00:00:00`);
+  const targetDate = new Date(`${year}-${month}-${day}T00:00:00`);
 
   if (isStartDay && isBeforeServingTime) {
     targetDate.setDate(targetDate.getDate() - 7); // Go back one week
@@ -95,11 +69,14 @@ function getWeeklyConfigDateToServe() {
  */
 function getWeeklyConfigDateToGenerate() {
   const now = new Date();
-  const daysUntilStart = (WEEK_START_DAY - now.getDay() + 7) % 7;
+  const { currentDateStr } = getDatePartsInTimezone(now, false);
 
-  const nextStartDate = new Date(now);
+  const currentDay = new Date(`${currentDateStr}T00:00:00`).getDay();
+  const daysUntilStart = (WEEK_START_DAY - currentDay + 7) % 7;
+
+  const nextStartDate = new Date(`${currentDateStr}T00:00:00`);
   nextStartDate.setDate(
-    now.getDate() + (daysUntilStart === 0 ? 7 : daysUntilStart)
+    nextStartDate.getDate() + (daysUntilStart === 0 ? 7 : daysUntilStart)
   );
 
   return getStartDayOfWeek(nextStartDate, WEEK_START_DAY);
@@ -111,39 +88,23 @@ function getWeeklyConfigDateToGenerate() {
  * @param {string} [weekStartDate] - Optional YYYY-MM-DD date string for the week start. Defaults to upcoming week.
  * @returns {Promise<object>} The generated weekly configuration object.
  */
-async function generateWeeklyConfig(weekStartDate) {
-  try {
-    const targetSunday = weekStartDate || getWeeklyConfigDateToGenerate();
-    const logIdentifier = weekStartDate
-      ? `for week starting ${weekStartDate}`
-      : `for upcoming week (starting ${targetSunday})`;
 
-    console.log(`Generating weekly puzzle config ${logIdentifier}`);
+async function generateWeeklyConfig(targetDate) {
+  const weekStartStr = formatDateForFile(targetDate); // ✅ instead of Date.toString()
+  const filePath = path.join(
+    __dirname,
+    "..",
+    "puzzles",
+    "weekly",
+    `${weekStartStr}.json`
+  );
 
-    // Placeholder logic – replace with actual weekly config generator
-    const weeklyConfig = generateWeeklyPuzzleConfig();
+  const config = {
+    /* your weekly puzzle config generation logic */
+  };
 
-    const filePath = path.join(
-      __dirname,
-      "..",
-      "puzzles",
-      "weekly",
-      `${targetSunday}.json`
-    );
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-    await fs.writeFile(filePath, JSON.stringify(weeklyConfig, null, 2));
-
-    console.log(`Weekly config ${logIdentifier} saved to ${filePath}`);
-    return weeklyConfig;
-  } catch (err) {
-    console.error(
-      `Error generating weekly config ${
-        weekStartDate ? `for ${weekStartDate}` : "for upcoming week"
-      }:`,
-      err
-    );
-    throw err;
-  }
+  await fs.writeFile(filePath, JSON.stringify(config, null, 2), "utf8");
+  return config;
 }
 
 /**
@@ -282,7 +243,7 @@ const showAllOptions = false;
  */
 async function initializeWeeklyConfig() {
   try {
-    const currentWeekStart = getWeeklyConfigDateToServe();
+    const currentWeekStart = formatDateForFile(getWeeklyConfigDateToServe());
     const filePath = path.join(
       __dirname,
       "..",

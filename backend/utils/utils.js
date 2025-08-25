@@ -1,5 +1,6 @@
 const fsSync = require("fs");
 const path = require("path");
+const { TIMEZONE } = require("../config/constants");
 
 // Function to generate custom puzzle
 function generatePuzzle(config) {
@@ -381,6 +382,38 @@ function validateCutDownDictOfLists(cutDownDictOfLists) {
   return false;
 }
 
+function getDatePartsInTimezone(date) {
+  const formatter = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  const parts = Object.fromEntries(
+    formatter.formatToParts(date).map((p) => [p.type, p.value])
+  );
+
+  return {
+    year: parts.year,
+    month: parts.month,
+    day: parts.day,
+    hour: parseInt(parts.hour, 10),
+    minute: parseInt(parts.minute, 10),
+  };
+}
+
+function formatDateForFile(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 module.exports = {
   generatePuzzle,
+  getDatePartsInTimezone,
+  formatDateForFile,
 };

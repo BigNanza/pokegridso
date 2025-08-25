@@ -1,0 +1,112 @@
+{
+  "date": "2025-08-25T01:02:07.067Z",
+  "completed": false,
+  "method": "AUTOMATIC",
+  "winCondition": 16,
+  "second": false,
+  "minimum": false,
+  "pp": null,
+  "options": false,
+  "config": {
+    "categories": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "winCondition": {
+      "isMinimum": false,
+      "isSecond": false,
+      "targetMetric": 16
+    },
+    "gameOptions": {
+      "limitedGuesses": false,
+      "showAllOptions": false,
+      "maxRepeats": 3
+    }
+  },
+  "boxes": [
+    [
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      }
+    ],
+    [
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      }
+    ],
+    [
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      },
+      {
+        "guess": null,
+        "sprite": null,
+        "percentage": null
+      }
+    ]
+  ],
+  "xCategories": [
+    {
+      "type": "Types",
+      "name": "Fire"
+    },
+    {
+      "type": "Types",
+      "name": "Steel"
+    },
+    {
+      "type": "Types",
+      "name": "Grass"
+    }
+  ],
+  "yCategories": [
+    {
+      "type": "Groups",
+      "name": "Legendary"
+    },
+    {
+      "type": "Evos",
+      "name": "2nd Evo"
+    },
+    {
+      "type": "Colors",
+      "name": "Green"
+    }
+  ],
+  "type": "DAILY",
+  "id": "dailypuzzle-2025-08-24"
+}
